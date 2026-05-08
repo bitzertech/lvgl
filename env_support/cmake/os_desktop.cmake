@@ -23,6 +23,13 @@ option(LV_BUILD_LVGL_H_SYSTEM_INCLUDE
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
+option(LV_CONF_INCLUDE_FREERTOS "Include the paths of FreeRTOS onto the lvgl build target" OFF)
+set(LV_BUILD_FREERTOS_INCLUDE_DIR "" CACHE PATH
+        "Supply the include path point to the FreeRTOS include folder, to be used with LV_CONF_INCLUDE_FREERTOS")
+set(LV_BUILD_FREERTOS_CONFIGURATION_DIR "" CACHE PATH
+        "Supply the include path to the project FreeRTOSConfig.h for FreeRTOS, to be used with LV_CONF_INCLUDE_FREERTOS")
+set(LV_BUILD_FREERTOS_PORT_DIR "" CACHE PATH "Supply the include path to the used FreeRTOS port folder")
+
 ### LVGL configuration options always use the prefix CONFIG_
 ### They can be set using the -D argument or cmake-gui(1) and are kept in cache
 ### The option names are the same as the defines in lv_conf.h - so check it for a description
@@ -156,6 +163,12 @@ else()
 
 endif()
 
+if (LV_CONF_INCLUDE_FREERTOS)
+    target_include_directories(lvgl PUBLIC ${LV_BUILD_FREERTOS_INCLUDE_DIR}
+            ${LV_BUILD_FREERTOS_CONFIGURATION_DIR}
+            ${LV_BUILD_FREERTOS_PORT_DIR})
+endif()
+
 if (LV_BUILD_LVGL_H_SYSTEM_INCLUDE)
     target_compile_definitions(lvgl PUBLIC LV_LVGL_H_INCLUDE_SYSTEM)
 elseif(LV_BUILD_LVGL_H_SIMPLE_INCLUDE)
@@ -228,7 +241,7 @@ if(CONFIG_LV_USE_THORVG_INTERNAL)
     set_target_properties(lvgl_thorvg PROPERTIES COMPILE_DEFINITIONS "${COMP_DEF}")
 
     # This tells cmake to link lvgl with lvgl_thorvg
-    # The linker will resolve all dependencies when dynamic linking 
+    # The linker will resolve all dependencies when dynamic linking
     target_link_libraries(lvgl PRIVATE lvgl_thorvg)
     # During static linking, we need to create a cyclic dependency as thorvg also needs lvgl
     if (NOT BUILD_SHARED_LIBS)
@@ -253,7 +266,7 @@ if(CONFIG_LV_BUILD_EXAMPLES)
 
     # This tells cmake to link lvgl with lvgl_examples
     # PUBLIC allows code linking with LVGL to also use the library
-    # The linker will resolve all dependencies when dynamic linking 
+    # The linker will resolve all dependencies when dynamic linking
     target_link_libraries(lvgl PUBLIC lvgl_examples)
 
     # During static linking, we need to create a cyclic dependency as the examples also needs lvgl
@@ -275,7 +288,7 @@ if(CONFIG_LV_BUILD_DEMOS)
 
     # This tells cmake to link lvgl with lvgl_examples
     # PUBLIC allows code linking with LVGL to also use the library
-    # The linker will resolve all dependencies when dynamic linking 
+    # The linker will resolve all dependencies when dynamic linking
     target_link_libraries(lvgl PUBLIC lvgl_demos)
 
     # During static linking, we need to create a cyclic dependency as the demos also needs lvgl
